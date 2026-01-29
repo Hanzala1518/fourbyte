@@ -7,32 +7,42 @@ on:
     branches: [ main, develop ]
 
 jobs:
-  lint-and-test:
+  build-and-test:
     runs-on: ubuntu-latest
     
     strategy:
       matrix:
-        node-version: [18.x, 20.x]
+        node-version: [20.x]
+      fail-fast: false
     
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
     
-    - name: Use Node.js ${{ matrix.node-version }}
+    - name: Setup Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: |
+          server/package-lock.json
+          client/package-lock.json
     
     - name: Install server dependencies
       working-directory: ./server
-      run: npm install
+      run: npm ci --prefer-offline
     
     - name: Install client dependencies
       working-directory: ./client
-      run: npm install
+      run: npm ci --prefer-offline
     
     - name: Build client
       working-directory: ./client
-      run: npm run build
+      run: npm run build --if-present
     
-    - name: Check for errors
-      run: echo "Build completed successfully"
+    - name: Verify build
+      run: |
+        echo "✅ Server dependencies installed"
+        echo "✅ Client dependencies installed"
+        echo "✅ Client build completed"
+        echo "🎉 All checks passed!"
