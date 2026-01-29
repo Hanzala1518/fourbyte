@@ -69,7 +69,7 @@ const SESSION_KEYS = {
 })
 export class SocketService {
   private socket: Socket | null = null;
-  private readonly SERVER_URL = 'http://localhost:3000';
+  private readonly SERVER_URL = 'https://fourbyte-server.vercel.app';
   
   // Reconnection state
   private pendingRoomId: string | null = null;
