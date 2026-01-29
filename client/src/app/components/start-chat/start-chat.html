@@ -1,0 +1,101 @@
+﻿<!--
+  START CHAT - "Terminal Noir" Design System
+  
+  Layout: Vertically stacked, centered, no grids.
+  Two clear actions with visual separation.
+  Keyboard-first interaction design.
+-->
+
+<section class="start-chat">
+  <!-- Noise overlay for consistency with landing -->
+  <div class="noise-overlay" aria-hidden="true"></div>
+
+  <div class="content">
+    <!-- Back navigation: minimal, top-left anchored feel -->
+    <button class="back-link" (click)="goBack()" type="button">
+      <span class="back-arrow" aria-hidden="true">←</span>
+      <span>Back</span>
+    </button>
+
+    <!-- Page title -->
+    <header class="header">
+      <h1 class="title">Enter the Void</h1>
+      <p class="subtitle">create a room or join an existing one</p>
+    </header>
+
+    <!-- Connection indicator: subtle, informational -->
+    <div class="status" [class.connected]="isConnected">
+      <span class="status-dot" aria-hidden="true"></span>
+      <span class="status-text">{{ isConnected ? 'Connected' : 'Connecting' }}</span>
+    </div>
+
+    <!-- Primary action: Create Room -->
+    <div class="action-group">
+      <span class="action-label">New Room</span>
+      <button 
+        class="action-btn primary"
+        (click)="createRoom()"
+        [disabled]="!isConnected || isCreating"
+        [class.loading]="isCreating"
+        type="button"
+      >
+        <span class="btn-text">{{ isCreating ? 'Creating...' : 'Create Room' }}</span>
+        <span class="btn-icon" aria-hidden="true">+</span>
+      </button>
+    </div>
+
+    <!-- Divider -->
+    <div class="divider">
+      <span class="divider-line" aria-hidden="true"></span>
+      <span class="divider-text">or</span>
+      <span class="divider-line" aria-hidden="true"></span>
+    </div>
+
+    <!-- Secondary action: Join Room -->
+    <div class="action-group">
+      <span class="action-label">Join Room</span>
+      
+      <!-- 4-digit code input -->
+      <div class="code-input-wrapper">
+        <input
+          type="text"
+          class="code-input"
+          [(ngModel)]="roomCode"
+          (input)="onCodeInput($event)"
+          (focus)="clearError()"
+          (keyup.enter)="joinRoom()"
+          placeholder="0000"
+          maxlength="4"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          autocomplete="off"
+          spellcheck="false"
+          [attr.aria-invalid]="errorMessage ? 'true' : null"
+          aria-label="4-digit room code"
+        />
+        <span class="code-hint">4-digit code</span>
+      </div>
+
+      <button 
+        class="action-btn secondary"
+        (click)="joinRoom()"
+        [disabled]="!isConnected || roomCode.length !== 4 || isJoining"
+        [class.loading]="isJoining"
+        type="button"
+      >
+        <span class="btn-text">{{ isJoining ? 'Joining...' : 'Join' }}</span>
+        <span class="btn-icon" aria-hidden="true">→</span>
+      </button>
+    </div>
+
+    <!-- Error message -->
+    <div 
+      class="error-message" 
+      role="alert"
+      [class.visible]="errorMessage"
+    >
+      <span class="error-icon" aria-hidden="true">!</span>
+      <span>{{ errorMessage }}</span>
+    </div>
+  </div>
+</section>

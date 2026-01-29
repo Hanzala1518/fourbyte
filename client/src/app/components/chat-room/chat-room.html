@@ -1,0 +1,161 @@
+﻿<!--
+  CHAT ROOM - "Terminal Noir" Design System
+  
+  Layout: Full-height with header, messages, and input.
+  Typography-first message display (no bubble clichés).
+  Clean separation of identity vs content.
+-->
+
+<section class="chat-room">
+  <!-- Noise overlay -->
+  <div class="noise-overlay" aria-hidden="true"></div>
+
+  <!-- HEADER: Room info + User identity -->
+  <header class="header">
+    <div class="header-left">
+      <button class="back-btn" (click)="leaveRoom()" type="button" aria-label="Leave room">
+        <span aria-hidden="true">←</span>
+        <span class="back-text">Exit</span>
+      </button>
+    </div>
+
+    <div class="header-center">
+      <button class="room-code" (click)="copyRoomCode()" type="button" title="Click to copy">
+        <span class="room-label">Room</span>
+        <span class="room-id">{{ roomId }}</span>
+      </button>
+      <span class="user-count" *ngIf="roomInfo">
+        <span class="count-dot" aria-hidden="true"></span>
+        {{ roomInfo.userCount }} {{ roomInfo.userCount === 1 ? 'person' : 'people' }}
+      </span>
+    </div>
+
+    <div class="header-right">
+      <!-- User identity: Avatar + Editable name -->
+      <div class="identity">
+        <span class="avatar" aria-hidden="true">{{ userAvatar }}</span>
+        
+        <!-- Display mode -->
+        <button 
+          *ngIf="!isEditingName" 
+          class="username-display"
+          (click)="startEditingName()"
+          type="button"
+          title="Click to edit name"
+        >
+          {{ userName }}
+          <span class="edit-hint" aria-hidden="true">✎</span>
+        </button>
+        
+        <!-- Edit mode -->
+        <div *ngIf="isEditingName" class="username-edit">
+          <input
+            type="text"
+            class="name-input"
+            [(ngModel)]="editNameValue"
+            (keydown)="onNameKeydown($event)"
+            (blur)="saveName()"
+            maxlength="20"
+            autofocus
+            aria-label="Edit username"
+          />
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ERROR MESSAGE -->
+  <div class="error-banner" *ngIf="errorMessage" role="alert">
+    {{ errorMessage }}
+  </div>
+
+  <!-- RATE LIMIT WARNING -->
+  <div class="rate-limit-banner" *ngIf="rateLimitMessage" role="status">
+    <span class="rate-icon" aria-hidden="true">⚠</span>
+    {{ rateLimitMessage }}
+  </div>
+
+  <!-- RECONNECTING INDICATOR -->
+  <div class="reconnecting-banner" *ngIf="isReconnecting" role="status">
+    <span class="reconnect-spinner" aria-hidden="true">◌</span>
+    Reconnecting to room...
+  </div>
+
+  <!-- MESSAGES AREA -->
+  <div class="messages-container" #messagesContainer>
+    <!-- Empty state -->
+    <div class="empty-state" *ngIf="messages.length === 0">
+      <div class="empty-icon" aria-hidden="true">◇</div>
+      <p class="empty-text">No messages yet</p>
+      <p class="empty-hint">Start the conversation</p>
+    </div>
+
+    <!-- Message list -->
+    <div class="messages-list" *ngIf="messages.length > 0">
+      <!-- System message (join/leave/status) -->
+      <div 
+        *ngFor="let message of messages; trackBy: trackByMessageId"
+        [ngClass]="{
+          'system-message': message.isSystem,
+          'message': !message.isSystem,
+          'own': !message.isSystem && isOwnMessage(message),
+          'new': message.isNew
+        }"
+      >
+        <!-- System messages: centered, minimal -->
+        <ng-container *ngIf="message.isSystem">
+          <span class="system-icon" aria-hidden="true">{{ message.avatar }}</span>
+          <span class="system-text">{{ message.content }}</span>
+          <span class="system-time">{{ formatTime(message.timestamp) }}</span>
+        </ng-container>
+
+        <!-- User messages: full layout -->
+        <ng-container *ngIf="!message.isSystem">
+          <!-- Message meta: avatar + sender -->
+          <div class="message-meta">
+            <span class="message-avatar" aria-hidden="true">{{ message.avatar }}</span>
+            <span class="message-sender">{{ message.senderName }}</span>
+            <span class="message-time">{{ formatTime(message.timestamp) }}</span>
+          </div>
+          
+          <!-- Message content: Typography-first, no bubble -->
+          <div class="message-body">
+            <p class="message-content">{{ message.content }}</p>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+
+  <!-- INPUT AREA -->
+  <footer class="input-area">
+    <div class="input-wrapper">
+      <input
+        #messageInput
+        type="text"
+        class="message-input"
+        [(ngModel)]="messageContent"
+        (keyup.enter)="sendMessage()"
+        placeholder="Type something..."
+        [disabled]="!isConnected"
+        autocomplete="off"
+        spellcheck="true"
+        aria-label="Message input"
+      />
+      <button 
+        class="send-btn"
+        (click)="sendMessage()"
+        [disabled]="!messageContent.trim() || !isConnected"
+        type="button"
+        aria-label="Send message"
+      >
+        <span class="send-icon" aria-hidden="true">↑</span>
+      </button>
+    </div>
+    
+    <!-- Connection status indicator -->
+    <div class="connection-status" [class.connected]="isConnected">
+      {{ isConnected ? 'Connected' : 'Reconnecting...' }}
+    </div>
+  </footer>
+</section>

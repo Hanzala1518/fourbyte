@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: |
+          server/package-lock.json
+          client/package-lock.json
+    
+    - name: Install server dependencies
+      working-directory: ./server
+      run: npm ci
+    
+    - name: Install client dependencies
+      working-directory: ./client
+      run: npm ci
+    
+    - name: Build client
+      working-directory: ./client
+      run: npm run build
+    
+    - name: Check for errors
+      run: echo "Build completed successfully"

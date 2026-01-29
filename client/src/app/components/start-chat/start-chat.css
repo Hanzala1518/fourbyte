@@ -1,0 +1,436 @@
+/*
+  START CHAT - "Terminal Noir" Design System
+  
+  PHILOSOPHY:
+  - Calm, focused, intentional
+  - Strong typographic hierarchy
+  - Motion only on interaction (no entrance animations)
+  - Keyboard-friendly, accessible
+  
+  LAYOUT:
+  - Single column, vertically stacked
+  - Clear visual grouping without borders/cards
+  - Generous spacing creates structure
+*/
+
+/* ============================================
+   CSS VARIABLES - Inherited from design system
+   ============================================ */
+:host {
+  --color-bg: #0a0a0a;
+  --color-bg-elevated: #111111;
+  --color-bg-input: #0f0f0f;
+  --color-text-primary: #e8e4df;
+  --color-text-secondary: #a0a0a0;
+  --color-text-muted: #5a5a5a;
+  --color-accent: #c8ff00;
+  --color-accent-dim: #9fcc00;
+  --color-error: #ff4d4d;
+  --color-success: #4dff88;
+  --color-border: #2a2a2a;
+  
+  --font-display: 'Syne', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* ============================================
+   LAYOUT
+   ============================================ */
+.start-chat {
+  position: relative;
+  width: 100vw;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-bg);
+  padding: 2rem;
+}
+
+/* Noise overlay - consistent with landing */
+.noise-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.035;
+  z-index: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+}
+
+/* ============================================
+   CONTENT CONTAINER
+   ============================================ */
+.content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* ============================================
+   BACK LINK
+   Minimal, doesn't compete for attention.
+   ============================================ */
+.back-link {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  
+  background: none;
+  border: none;
+  cursor: pointer;
+  
+  transition: color 0.2s ease;
+}
+
+.back-link:hover {
+  color: var(--color-text-secondary);
+}
+
+.back-link:focus-visible {
+  outline: 1px solid var(--color-accent);
+  outline-offset: 4px;
+}
+
+.back-arrow {
+  transition: transform 0.2s var(--ease-out-expo);
+}
+
+.back-link:hover .back-arrow {
+  transform: translateX(-4px);
+}
+
+/* ============================================
+   HEADER
+   Strong title, subdued subtitle.
+   ============================================ */
+.header {
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 6vw, 2.5rem);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--color-text-primary);
+  margin: 0 0 0.75rem 0;
+}
+
+.subtitle {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* ============================================
+   CONNECTION STATUS
+   Subtle indicator, not distracting.
+   ============================================ */
+.status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--color-text-muted);
+  transition: background-color 0.3s ease;
+}
+
+.status.connected .status-dot {
+  background-color: var(--color-success);
+  box-shadow: 0 0 8px var(--color-success);
+}
+
+.status-text {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+/* ============================================
+   ACTION GROUPS
+   Clear visual hierarchy without cards.
+   ============================================ */
+.action-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.action-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+/* ============================================
+   ACTION BUTTONS
+   Full-width, clear hierarchy.
+   Primary = accent, Secondary = outlined.
+   ============================================ */
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 1rem 1.5rem;
+  
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  
+  border: none;
+  cursor: pointer;
+  
+  transition: 
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.15s var(--ease-out-expo),
+    opacity 0.2s ease;
+}
+
+/* Primary button: Solid accent */
+.action-btn.primary {
+  background-color: var(--color-accent);
+  color: var(--color-bg);
+}
+
+.action-btn.primary:hover:not(:disabled) {
+  background-color: var(--color-text-primary);
+}
+
+/* Secondary button: Outlined */
+.action-btn.secondary {
+  background-color: transparent;
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+}
+
+.action-btn.secondary:hover:not(:disabled) {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+/* Button states */
+.action-btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+.action-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.action-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.action-btn.loading {
+  pointer-events: none;
+}
+
+.btn-icon {
+  font-size: 1.2em;
+  transition: transform 0.2s var(--ease-out-expo);
+}
+
+.action-btn:hover:not(:disabled) .btn-icon {
+  transform: scale(1.1);
+}
+
+/* ============================================
+   DIVIDER
+   Simple visual separation.
+   ============================================ */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 0.5rem 0;
+}
+
+.divider-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--color-border),
+    transparent
+  );
+}
+
+.divider-text {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+/* ============================================
+   CODE INPUT
+   Large, monospace, centered digits.
+   Distinctive without being flashy.
+   ============================================ */
+.code-input-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.code-input {
+  width: 100%;
+  padding: 1.25rem 1rem;
+  
+  font-family: var(--font-mono);
+  font-size: 2rem;
+  font-weight: 500;
+  letter-spacing: 0.5em;
+  text-align: center;
+  
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-input);
+  border: 1px solid var(--color-border);
+  
+  /* No rounded corners - brutalist consistency */
+  caret-color: var(--color-accent);
+  
+  transition: 
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.code-input::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.5;
+}
+
+.code-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 1px var(--color-accent);
+}
+
+.code-input[aria-invalid="true"] {
+  border-color: var(--color-error);
+}
+
+.code-hint {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+/* ============================================
+   ERROR MESSAGE
+   Visible only when needed.
+   Clear but not alarming.
+   ============================================ */
+.error-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  min-height: 2.5rem;
+  
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+  color: var(--color-error);
+  
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: 
+    opacity 0.2s ease,
+    transform 0.2s var(--ease-out-expo);
+}
+
+.error-message.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.error-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 1px solid var(--color-error);
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 480px) {
+  .start-chat {
+    padding: 1.5rem;
+  }
+  
+  .content {
+    gap: 1.5rem;
+  }
+  
+  .code-input {
+    font-size: 1.5rem;
+    letter-spacing: 0.4em;
+    padding: 1rem;
+  }
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  .action-btn,
+  .back-arrow,
+  .btn-icon,
+  .error-message {
+    transition: none;
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "name": "fourbyte",
+  "version": "1.0.0",
+  "description": "Anonymous, real-time room-based chat application",
+  "private": true,
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "setup": "npm install --workspaces",
+    "dev:server": "cd server && npm start",
+    "dev:client": "cd client && npx ng serve",
+    "build:client": "cd client && npm run build",
+    "start:server": "cd server && npm start"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/fourbyte.git"
+  },
+  "keywords": [
+    "chat",
+    "websocket",
+    "socket.io",
+    "angular",
+    "express",
+    "real-time",
+    "anonymous"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}

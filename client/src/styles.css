@@ -1,0 +1,43 @@
+/*
+  FOURBYTE - Global Styles
+  Reset and base configuration for the application.
+*/
+
+/* Box-sizing reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Remove default margins and padding */
+* {
+  margin: 0;
+  padding: 0;
+}
+
+/* Full height setup */
+html, body {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  /* Prevent horizontal scroll */
+  overflow-x: hidden;
+  
+  /* Smooth font rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  
+  /* Base background - prevents flash of white */
+  background-color: #0a0a0a;
+  color: #e8e4df;
+}
+
+/* App root full height */
+app-root {
+  display: block;
+  height: 100%;
+}

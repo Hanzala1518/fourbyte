@@ -1,0 +1,308 @@
+/*
+  FOURBYTE Landing - "Terminal Noir" Design System
+  
+  TYPOGRAPHY:
+  - Syne: Geometric sans with personality. Bold, distinctive, not overused.
+  - JetBrains Mono: Technical feel for secondary text.
+  
+  COLOR PHILOSOPHY:
+  - Near-black background (#0a0a0a) - deeper than pure black, less harsh
+  - Off-white text (#e8e4df) - warm, easier on eyes than pure white
+  - Accent: Electric lime (#c8ff00) - unexpected, not typical tech blue/purple
+  
+  TEXTURE:
+  - CSS noise overlay adds analog warmth
+  - Avoids flat, sterile digital feel
+*/
+
+/* ============================================
+   CSS VARIABLES - Theme tokens
+   ============================================ */
+:host {
+  --color-bg: #0a0a0a;
+  --color-bg-elevated: #141414;
+  --color-text-primary: #e8e4df;
+  --color-text-muted: #6b6b6b;
+  --color-accent: #c8ff00;
+  --color-accent-dim: #9fcc00;
+  
+  --font-display: 'Syne', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-circ: cubic-bezier(0.85, 0, 0.15, 1);
+  
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* ============================================
+   LAYOUT - Full viewport, centered content
+   ============================================ */
+.landing {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  min-height: 100dvh; /* Dynamic viewport for mobile */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-bg);
+  overflow: hidden;
+}
+
+/* ============================================
+   NOISE OVERLAY
+   Creates subtle texture without images.
+   Uses CSS filter for procedural grain effect.
+   ============================================ */
+.noise-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.035;
+  z-index: 1;
+  
+  /* Procedural noise via SVG filter */
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+}
+
+/* ============================================
+   CONTENT CONTAINER
+   ============================================ */
+.content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 2rem;
+}
+
+/* ============================================
+   BRAND / TITLE
+   Large, commanding presence.
+   Letter-spacing loosened for elegance.
+   ============================================ */
+.brand {
+  font-family: var(--font-display);
+  font-size: clamp(3.5rem, 12vw, 9rem);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--color-text-primary);
+  margin: 0 0 1.5rem 0;
+  line-height: 1;
+  
+  /* Prevent text selection for cleaner interaction */
+  user-select: none;
+}
+
+/* Individual letter animation */
+.letter {
+  display: inline-block;
+  
+  /* Animation: Rise from below with fade */
+  animation: letter-rise 0.8s var(--ease-out-expo) backwards;
+  animation-delay: calc(var(--i) * 0.06s + 0.1s);
+}
+
+@keyframes letter-rise {
+  from {
+    opacity: 0;
+    transform: translateY(40px) rotate(-3deg);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg);
+    filter: blur(0);
+  }
+}
+
+/* ============================================
+   TAGLINE
+   Monospace for technical contrast.
+   Subdued but legible.
+   ============================================ */
+.tagline {
+  font-family: var(--font-mono);
+  font-size: clamp(0.75rem, 2vw, 0.95rem);
+  font-weight: 400;
+  letter-spacing: 0.15em;
+  text-transform: lowercase;
+  color: var(--color-text-muted);
+  margin: 0 0 3.5rem 0;
+  
+  /* Animation: Fade in after title */
+  animation: fade-up 0.7s var(--ease-out-expo) 0.7s backwards;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================
+   CTA BUTTON
+   Brutalist: No border-radius, sharp edges.
+   Large padding for confident presence.
+   Accent color draws the eye.
+   ============================================ */
+.cta {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 2.5rem;
+  
+  font-family: var(--font-display);
+  font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  
+  color: var(--color-bg);
+  background-color: var(--color-accent);
+  border: none;
+  cursor: pointer;
+  
+  /* Sharp edges - intentionally no border-radius */
+  /* Adds brutalist character, stands out from rounded trends */
+  
+  /* Animation: Appear last */
+  animation: cta-reveal 0.6s var(--ease-out-expo) 1s backwards;
+  
+  transition: 
+    transform 0.3s var(--ease-out-expo),
+    background-color 0.2s ease;
+}
+
+@keyframes cta-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Hover: Subtle lift and color shift */
+.cta:hover {
+  background-color: var(--color-text-primary);
+  transform: translateY(-3px);
+}
+
+/* Focus: Visible outline for accessibility */
+.cta:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 4px;
+}
+
+/* Active: Press feedback */
+.cta:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Arrow animation on hover */
+.cta-arrow {
+  display: inline-block;
+  transition: transform 0.3s var(--ease-out-expo);
+}
+
+.cta:hover .cta-arrow {
+  transform: translateX(6px);
+}
+
+/* ============================================
+   FOOTER / VERSION
+   Anchors the composition at bottom.
+   Very subtle, adds authenticity.
+   ============================================ */
+.footer {
+  position: absolute;
+  bottom: 2rem;
+  z-index: 2;
+  
+  animation: fade-up 0.5s var(--ease-out-expo) 1.3s backwards;
+}
+
+.version {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  opacity: 0.5;
+}
+
+/* ============================================
+   AMBIENT GLOW
+   Subtle radial gradient behind content.
+   Adds depth without being a "gradient background".
+   ============================================ */
+.landing::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120%;
+  height: 80%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(200, 255, 0, 0.03) 0%,
+    transparent 60%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ============================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================ */
+@media (max-width: 480px) {
+  .content {
+    padding: 1.5rem;
+  }
+  
+  .cta {
+    padding: 1rem 2rem;
+    width: 100%;
+    max-width: 280px;
+    justify-content: center;
+  }
+  
+  .tagline {
+    margin-bottom: 2.5rem;
+  }
+}
+
+/* ============================================
+   REDUCED MOTION
+   Respect user preferences for accessibility.
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  .letter,
+  .tagline,
+  .cta,
+  .footer {
+    animation: none;
+  }
+  
+  .cta-arrow {
+    transition: none;
+  }
+}

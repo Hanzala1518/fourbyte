@@ -1,0 +1,43 @@
+﻿<!--
+  DESIGN: "Terminal Noir"
+  
+  Concept: Minimal, atmospheric, slightly brutalist.
+  - No hero images, no card grids, no generic SaaS patterns
+  - Typography-driven with generous whitespace
+  - Single focal point: the brand name + CTA
+  - Subtle grain texture for depth without gradients
+  - Staggered reveal animation creates anticipation
+-->
+
+<section class="landing">
+  <!-- Noise overlay for texture depth - avoids flat digital look -->
+  <div class="noise-overlay" aria-hidden="true"></div>
+  
+  <div class="content">
+    <!-- Brand mark: Each letter animates independently for visual interest -->
+    <h1 class="brand">
+      <span class="letter" style="--i: 0">F</span>
+      <span class="letter" style="--i: 1">O</span>
+      <span class="letter" style="--i: 2">U</span>
+      <span class="letter" style="--i: 3">R</span>
+      <span class="letter" style="--i: 4">B</span>
+      <span class="letter" style="--i: 5">Y</span>
+      <span class="letter" style="--i: 6">T</span>
+      <span class="letter" style="--i: 7">E</span>
+    </h1>
+
+    <!-- Tagline: Monospace for contrast, delayed reveal -->
+    <p class="tagline">anonymous rooms. ephemeral words.</p>
+
+    <!-- Single CTA: Large hit target, no border-radius (brutalist touch) -->
+    <button class="cta" (click)="navigateToStart()">
+      <span class="cta-text">Start Chatting</span>
+      <span class="cta-arrow" aria-hidden="true">→</span>
+    </button>
+  </div>
+
+  <!-- Version/signature: Adds authenticity, anchors the bottom -->
+  <footer class="footer">
+    <span class="version">v1.0</span>
+  </footer>
+</section>
