@@ -1,78 +1,71 @@
-// Vercel serverless function entry point for Socket.IO
+/**
+ * IMPORTANT: Vercel Serverless CANNOT run Socket.IO
+ * 
+ * Why this doesn't work:
+ * 1. Vercel functions are stateless - they don't maintain connections
+ * 2. Vercel functions timeout after 10 seconds
+ * 3. Socket.IO requires persistent WebSocket/polling connections
+ * 4. Each Socket.IO request hits a DIFFERENT serverless instance
+ * 
+ * This file provides a basic health check, but Socket.IO will NOT work.
+ * You MUST deploy to Railway, Render, or another platform that supports
+ * long-running processes for Socket.IO to function.
+ */
+
 const express = require('express');
-const { createServer } = require('http');
-const { Server } = require('socket.io');
 const cors = require('cors');
-const { initializeSocketServer } = require('../src/socket');
 
 const app = express();
-const httpServer = createServer(app);
 
-// CORS configuration for Vercel deployment
+// CORS configuration
 const CORS_ORIGIN = process.env.CORS_ORIGIN || 'https://fourbyte.vercel.app';
 
-// Middleware
 app.use(cors({
   origin: CORS_ORIGIN,
   credentials: true,
-  methods: ['GET', 'POST']
+  methods: ['GET', 'POST', 'OPTIONS']
 }));
+
 app.use(express.json());
 
-// Initialize Socket.IO with Vercel-compatible settings
-const io = new Server(httpServer, {
-  cors: {
-    origin: CORS_ORIGIN,
-    credentials: true,
-    methods: ['GET', 'POST']
-  },
-  // Critical: Use HTTP long-polling as primary transport for Vercel
-  transports: ['polling', 'websocket'],
-  // Allow upgrades but don't require WebSocket
-  allowUpgrades: true,
-  // Increase timeouts for serverless environment
-  pingTimeout: 60000,
-  pingInterval: 25000,
-  // Connection state recovery for reconnections
-  connectionStateRecovery: {
-    maxDisconnectionDuration: 2 * 60 * 1000,
-    skipMiddlewares: true,
-  }
-});
-
-// Initialize Socket.IO handlers using the existing socket.js logic
-initializeSocketServer(httpServer, io);
-
-// Health check endpoint
+// Health endpoint
 app.get('/health', (req, res) => {
   res.json({ 
-    status: 'ok', 
-    timestamp: new Date().toISOString(),
-    message: 'FOURBYTE server is running',
-    transport: 'Socket.IO configured for Vercel'
+    status: 'error',
+    message: 'Socket.IO cannot run on Vercel serverless',
+    solution: 'Deploy to Railway (railway.app) or Render (render.com)',
+    timestamp: new Date().toISOString()
   });
 });
 
 // Root endpoint
 app.get('/', (req, res) => {
   res.json({ 
-    name: 'FOURBYTE API',
-    version: '1.0.0',
-    status: 'running',
-    socketio: 'enabled'
+    error: 'Socket.IO not available',
+    message: 'Vercel serverless functions cannot maintain WebSocket connections',
+    alternatives: [
+      'Railway: https://railway.app (recommended - $5/month)',
+      'Render: https://render.com (free tier available)',
+      'Fly.io: https://fly.io (free tier available)'
+    ]
   });
 });
 
-// Socket.IO path for testing
-app.get('/socket.io/*', (req, res) => {
-  res.json({ info: 'Socket.IO endpoint - use Socket.IO client to connect' });
+// Socket.IO endpoints will fail
+app.all('/socket.io/*', (req, res) => {
+  res.status(501).json({
+    error: 'Not Implemented',
+    message: 'Socket.IO cannot run on Vercel serverless architecture',
+    reason: 'Serverless functions are stateless and timeout after 10 seconds',
+    solution: 'Deploy server to Railway, Render, or Fly.io'
+  });
 });
 
-// Error handling
+// Error handler
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: 'Something went wrong!' });
+  console.error(err);
+  res.status(500).json({ error: err.message });
 });
 
-// Export for Vercel serverless
-module.exports = httpServer;
+// Export for Vercel
+module.exports = app;

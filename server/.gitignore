@@ -27,3 +27,4 @@ build/
 
 # Testing
 coverage/
+.env*.local
