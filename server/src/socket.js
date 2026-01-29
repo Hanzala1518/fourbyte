@@ -78,16 +78,17 @@ function createSystemMessage(roomId, content) {
 /**
  * Initialize Socket.IO server with all event handlers
  * @param {http.Server} httpServer 
+ * @param {Server} [ioInstance] - Optional Socket.IO instance (for Vercel)
  * @returns {Server} Socket.IO server instance
  */
-function initializeSocketServer(httpServer) {
-  const io = new Server(httpServer, {
+function initializeSocketServer(httpServer, ioInstance = null) {
+  const io = ioInstance || new Server(httpServer, {
     cors: {
       origin: CORS_ORIGIN,
       methods: ['GET', 'POST'],
       credentials: true
     },
-    transports: ['websocket', 'polling'],
+    transports: ['polling', 'websocket'],
     // Connection settings for robustness
     pingTimeout: 60000,
     pingInterval: 25000

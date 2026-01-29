@@ -140,14 +140,20 @@ export class SocketService {
     }
 
     this.socket = io(this.SERVER_URL, {
-      transports: ['websocket', 'polling'],
+      // CRITICAL: Use polling first for Vercel compatibility
+      transports: ['polling', 'websocket'],
       // Reconnection settings
       reconnection: true,
       reconnectionAttempts: 10,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
-      // Timeout settings
-      timeout: 20000
+      // Timeout settings - increased for serverless environment
+      timeout: 30000,
+      // Additional Vercel-specific settings
+      upgrade: true,
+      rememberUpgrade: true,
+      // Path configuration
+      path: '/socket.io/'
     });
 
     // =========================================
