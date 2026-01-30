@@ -19,6 +19,10 @@ out/
 .env.development.local
 .env*.local
 
+# Deployment
+.vercel/
+.railway/
+
 # Logs
 *.log
 npm-debug.log*

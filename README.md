@@ -50,6 +50,7 @@
 
 ### Deployment
 ![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)
+![Railway](https://img.shields.io/badge/Railway-0B0D0E?style=for-the-badge&logo=railway&logoColor=white)
 
 </div>
 
@@ -207,51 +208,64 @@ RATE_LIMIT: {
 
 ---
 
-## 🌐 Deployment to Vercel
+## 🌐 Deployment
 
-### 1. Prerequisites
+### Client (Frontend): Vercel
 
-- Vercel account ([Sign up](https://vercel.com/signup))
-- Vercel CLI: `npm i -g vercel`
-
-### 2. Deploy Backend (Server)
-
-```bash
-cd server
-vercel --prod
-```
-
-Note your server URL (e.g., `https://fourbyte-server.vercel.app`)
-
-### 3. Update Client Configuration
-
-In `client/src/app/services/socket.ts`, update:
-
-```typescript
-private readonly SERVER_URL = 'https://fourbyte-server.vercel.app';
-```
-
-### 4. Deploy Frontend (Client)
+**Deploy frontend to Vercel:**
 
 ```bash
 cd client
-vercel --prod
+npx vercel --prod
 ```
 
-### 5. Configure CORS
+Your client will be live at: `https://fourbyte.vercel.app`
 
-In Vercel dashboard for your server:
-- Go to **Settings** → **Environment Variables**
-- Add: `CORS_ORIGIN` = `https://your-frontend.vercel.app`
-- Redeploy: `vercel --prod`
+### Server (Backend): Railway
 
-### Alternative: Monorepo Deployment
+**Vercel cannot host Socket.IO** due to serverless limitations. Deploy server to Railway:
 
-Use the included `vercel.json` at project root for single deployment:
+#### Option 1: Railway CLI (Fastest)
 
 ```bash
-vercel --prod
+# Install Railway CLI
+npm install -g @railway/cli
+
+# Login
+railway login
+
+# Deploy from server directory
+cd server
+railway init
+railway up
+
+# Set environment variable
+railway variables set CORS_ORIGIN=https://fourbyte.vercel.app
+
+# Get your server URL
+railway domain
 ```
+
+#### Option 2: Railway Dashboard
+
+1. Go to https://railway.app/dashboard
+2. Click "New Project" → "Deploy from GitHub"
+3. Select your repo, root directory: `server`
+4. Add environment variable: `CORS_ORIGIN=https://fourbyte.vercel.app`
+5. Click "Deploy"
+
+### Update Client with Server URL
+
+After Railway deployment:
+
+1. Copy your Railway URL (e.g., `https://fourbyte-server-production.up.railway.app`)
+2. Edit `client/src/app/services/socket.ts` line 72:
+   ```typescript
+   private readonly SERVER_URL = 'https://fourbyte-server-production.up.railway.app';
+   ```
+3. Redeploy client: `cd client && npx vercel --prod`
+
+**See [RAILWAY_DEPLOY.md](RAILWAY_DEPLOY.md) for detailed instructions.**
 
 ---
 
