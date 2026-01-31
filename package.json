@@ -12,7 +12,8 @@
     "dev:server": "cd server && npm start",
     "dev:client": "cd client && npx ng serve",
     "build:client": "cd client && npm run build",
-    "start:server": "cd server && npm start"
+    "start:server": "cd server && npm start",
+    "start": "cd server && node src/index.js"
   },
   "repository": {
     "type": "git",
