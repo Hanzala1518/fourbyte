@@ -25,12 +25,19 @@
  */
 
 const { Server } = require('socket.io');
-const { CORS_ORIGIN, RATE_LIMIT, MESSAGE, USERNAME } = require('./config');
+const { CORS_ORIGIN, RATE_LIMIT, MESSAGE, USERNAME, SECURITY } = require('./config');
 const { roomManager } = require('./roomManager');
 const { RateLimiter } = require('./rateLimiter');
 
 // Initialize rate limiter for messages
 const messageRateLimiter = new RateLimiter(RATE_LIMIT.MAX_MESSAGES, RATE_LIMIT.WINDOW_MS);
+
+// SECURITY: Event rate limiter for non-message events (join, create, etc.)
+const eventRateLimiter = new RateLimiter(SECURITY.EVENT_RATE_LIMIT, SECURITY.EVENT_RATE_WINDOW_MS);
+
+// SECURITY: Connection tracking per IP
+const connectionsByIP = new Map(); // IP -> count
+const MAX_CONNECTIONS_PER_IP = SECURITY.MAX_CONNECTIONS_PER_IP;
 
 /**
  * Validate message content
@@ -53,7 +60,16 @@ function validateMessage(content) {
   }
   
   // Remove control characters but preserve normal text
-  const sanitized = trimmed.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+  let sanitized = trimmed.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+  
+  // SECURITY: HTML entity encoding to prevent XSS
+  // Encode < > & " ' to prevent HTML/script injection
+  sanitized = sanitized
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
   
   return { valid: true, sanitized };
 }
@@ -95,7 +111,21 @@ function initializeSocketServer(httpServer, ioInstance = null) {
   });
 
   io.on('connection', (socket) => {
-    console.log(`[Socket] Client connected: ${socket.id}`);
+    // SECURITY: Track and limit connections per IP
+    const clientIP = socket.handshake.headers['x-forwarded-for']?.split(',')[0]?.trim() 
+      || socket.handshake.address 
+      || 'unknown';
+    
+    const currentConnections = connectionsByIP.get(clientIP) || 0;
+    if (currentConnections >= MAX_CONNECTIONS_PER_IP) {
+      console.warn(`[Socket] Connection limit exceeded for IP: ${clientIP}`);
+      socket.emit('error', { message: 'Too many connections from your IP' });
+      socket.disconnect(true);
+      return;
+    }
+    connectionsByIP.set(clientIP, currentConnections + 1);
+    
+    console.log(`[Socket] Client connected: ${socket.id} (IP: ${clientIP}, Connections: ${currentConnections + 1})`);
 
     // Send initial identity
     const tempUserName = `User_${Math.floor(1000 + Math.random() * 9000)}`;
@@ -109,6 +139,13 @@ function initializeSocketServer(httpServer, ioInstance = null) {
     // =========================================
     socket.on('create-room', (callback) => {
       try {
+        // SECURITY: Rate limit room creation events
+        const rateCheck = eventRateLimiter.check(socket.id);
+        if (!rateCheck.allowed) {
+          callback({ success: false, error: 'Too many requests. Please wait.' });
+          return;
+        }
+        
         const room = roomManager.createRoom();
         callback({ success: true, roomId: room.id });
       } catch (error) {
@@ -139,14 +176,30 @@ function initializeSocketServer(httpServer, ioInstance = null) {
     // =========================================
     socket.on('join-room', (data, callback) => {
       try {
+        // SECURITY: Rate limit join events
+        const rateCheck = eventRateLimiter.check(socket.id);
+        if (!rateCheck.allowed) {
+          callback({ success: false, error: 'Too many requests. Please wait.' });
+          return;
+        }
+        
         // Support both simple roomId and object with preferredName
         let roomId, preferredName;
         if (typeof data === 'string') {
           roomId = data;
           preferredName = null;
-        } else {
+        } else if (data && typeof data === 'object') {
           roomId = data.roomId;
           preferredName = data.preferredName;
+        } else {
+          callback({ success: false, error: 'Invalid request' });
+          return;
+        }
+        
+        // SECURITY: Validate roomId format
+        if (typeof roomId !== 'string' || !/^\d{4}$/.test(roomId)) {
+          callback({ success: false, error: 'Invalid room code' });
+          return;
         }
         
         if (!roomManager.roomExists(roomId)) {
@@ -192,6 +245,11 @@ function initializeSocketServer(httpServer, ioInstance = null) {
     // =========================================
     socket.on('leave-room', (roomId) => {
       try {
+        // SECURITY: Validate roomId format
+        if (typeof roomId !== 'string' || !/^\d{4}$/.test(roomId)) {
+          console.warn(`[Socket] Invalid roomId format: ${roomId}`);
+          return;
+        }
         const userInfo = roomManager.getUserInfo(socket.id);
         const left = roomManager.leaveRoom(roomId, socket.id);
         
@@ -220,8 +278,21 @@ function initializeSocketServer(httpServer, ioInstance = null) {
     // SEND MESSAGE
     // Rate limited + validated
     // =========================================
-    socket.on('send-message', ({ roomId, content }, callback) => {
+    socket.on('send-message', (data, callback) => {
       try {
+        // SECURITY: Validate input structure
+        if (!data || typeof data !== 'object') {
+          if (callback) callback({ success: false, error: 'Invalid request' });
+          return;
+        }
+        const { roomId, content } = data;
+        
+        // SECURITY: Validate roomId format (4 digits)
+        if (typeof roomId !== 'string' || !/^\d{4}$/.test(roomId)) {
+          if (callback) callback({ success: false, error: 'Invalid room' });
+          return;
+        }
+        
         // Rate limiting check
         const rateCheck = messageRateLimiter.check(socket.id);
         if (!rateCheck.allowed) {
@@ -272,8 +343,21 @@ function initializeSocketServer(httpServer, ioInstance = null) {
     // =========================================
     // UPDATE USERNAME
     // =========================================
-    socket.on('update-username', ({ roomId, newName }, callback) => {
+    socket.on('update-username', (data, callback) => {
       try {
+        // SECURITY: Validate input structure
+        if (!data || typeof data !== 'object') {
+          callback({ success: false, error: 'Invalid request' });
+          return;
+        }
+        const { roomId, newName } = data;
+        
+        // SECURITY: Validate roomId format
+        if (typeof roomId !== 'string' || !/^\d{4}$/.test(roomId)) {
+          callback({ success: false, error: 'Invalid room' });
+          return;
+        }
+        
         if (!newName || typeof newName !== 'string') {
           callback({ success: false, error: 'Invalid name' });
           return;
@@ -321,8 +405,20 @@ function initializeSocketServer(httpServer, ioInstance = null) {
     socket.on('disconnect', (reason) => {
       console.log(`[Socket] Client disconnected: ${socket.id}, reason: ${reason}`);
       
-      // Clean up rate limiter
+      // Clean up rate limiters
       messageRateLimiter.remove(socket.id);
+      eventRateLimiter.remove(socket.id);
+      
+      // SECURITY: Decrement IP connection count
+      const clientIP = socket.handshake.headers['x-forwarded-for']?.split(',')[0]?.trim() 
+        || socket.handshake.address 
+        || 'unknown';
+      const currentConnections = connectionsByIP.get(clientIP) || 0;
+      if (currentConnections <= 1) {
+        connectionsByIP.delete(clientIP);
+      } else {
+        connectionsByIP.set(clientIP, currentConnections - 1);
+      }
       
       // Handle room cleanup
       const result = roomManager.handleDisconnect(socket.id);
@@ -343,10 +439,15 @@ function initializeSocketServer(httpServer, ioInstance = null) {
     });
 
     // =========================================
-    // STATS (for monitoring)
+    // STATS (for monitoring) - Protected in production
     // =========================================
     socket.on('get-stats', (callback) => {
       try {
+        // SECURITY: Only allow stats in development mode
+        if (process.env.NODE_ENV === 'production') {
+          callback({ error: 'Stats not available in production' });
+          return;
+        }
         callback({
           rooms: roomManager.getStats(),
           rateLimiter: messageRateLimiter.getStats()

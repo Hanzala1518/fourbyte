@@ -64,12 +64,25 @@ const SESSION_KEYS = {
   LAST_ROOM: 'fourbyte_last_room'
 } as const;
 
+// Server URL - Configure via environment or build-time injection
+// For development: http://localhost:3000
+// For production: Set via environment or update this value
+const getServerUrl = (): string => {
+  // Check for runtime config (injected at build time or via window config)
+  if (typeof window !== 'undefined' && (window as any).__FOURBYTE_SERVER_URL__) {
+    return (window as any).__FOURBYTE_SERVER_URL__;
+  }
+  // Default: Railway production URL
+  // UPDATE THIS VALUE after Railway deployment
+  return 'https://fourbyte-production.up.railway.app';
+};
+
 @Injectable({
   providedIn: 'root',
 })
 export class SocketService {
   private socket: Socket | null = null;
-  private readonly SERVER_URL = 'https://fourbyte-server.vercel.app';
+  private readonly SERVER_URL = getServerUrl();
   
   // Reconnection state
   private pendingRoomId: string | null = null;
@@ -140,20 +153,22 @@ export class SocketService {
     }
 
     this.socket = io(this.SERVER_URL, {
-      // CRITICAL: Use polling first for Vercel compatibility
-      transports: ['polling', 'websocket'],
+      // Railway supports WebSocket natively - prefer it over polling
+      transports: ['websocket', 'polling'],
       // Reconnection settings
       reconnection: true,
       reconnectionAttempts: 10,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
-      // Timeout settings - increased for serverless environment
-      timeout: 30000,
-      // Additional Vercel-specific settings
+      // Timeout settings
+      timeout: 20000,
+      // WebSocket upgrade settings
       upgrade: true,
       rememberUpgrade: true,
       // Path configuration
-      path: '/socket.io/'
+      path: '/socket.io/',
+      // Force new connection on each connect call
+      forceNew: false
     });
 
     // =========================================

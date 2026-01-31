@@ -19,6 +19,9 @@ import { Subscription } from 'rxjs';
 // Avatar pool: Distinctive geometric symbols, not typical emoji faces
 const AVATAR_POOL = ['◆', '◇', '○', '●', '□', '■', '△', '▲', '▽', '▼', '◈', '◉', '◎', '⬡', '⬢', '✦'];
 
+// PERFORMANCE: Maximum messages to keep in memory
+const MAX_CLIENT_MESSAGES = 200;
+
 // Extended message with local tracking
 interface DisplayMessage extends ChatMessage {
   avatar: string;
@@ -107,6 +110,12 @@ export class ChatRoom implements OnInit, OnDestroy, AfterViewChecked {
       this.socketService.messages$.subscribe(message => {
         const displayMessage = this.enhanceMessage(message);
         this.messages.push(displayMessage);
+        
+        // PERFORMANCE: Trim old messages to prevent memory exhaustion
+        while (this.messages.length > MAX_CLIENT_MESSAGES) {
+          this.messages.shift();
+        }
+        
         this.shouldScrollToBottom = true;
         
         // Remove "new" flag after animation
