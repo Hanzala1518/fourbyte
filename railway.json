@@ -1,0 +1,24 @@
+{
+  "$schema": "https://railway.com/railway.schema.json",
+  "build": {
+    "builder": "RAILPACK",
+    "buildCommand": "npm run build --workspace=fourbyte-client",
+    "watchPatterns": [
+      "/client/**"
+    ]
+  },
+  "deploy": {
+    "runtime": "V2",
+    "numReplicas": 1,
+    "startCommand": "npm run start --workspace=fourbyte-client",
+    "sleepApplication": false,
+    "useLegacyStacker": false,
+    "multiRegionConfig": {
+      "us-west2": {
+        "numReplicas": 1
+      }
+    },
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
+  }
+}
